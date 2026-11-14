@@ -1,0 +1,23 @@
+name: Sync upstream snapshot
+
+on:
+  push:
+    branches: [ sync-request ]
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  sync:
+    runs-on: ubuntu-24.04
+    steps:
+      - name: Snapshot Codeberg master into branch "upstream"
+        run: |
+          git clone -q --depth 1 https://codeberg.org/Freeyourgadget/Gadgetbridge.git up
+          cd up
+          rm -rf .github
+          git config user.name "rotador-ci"; git config user.email "rotador-ci@users.noreply.github.com"
+          up=$(git rev-parse --short HEAD); ver=$(grep -m1 -oE 'versionName "[^"]+"' app/build.gradle || true)
+          rm -rf .git && git init -q -b upstream && git add -A && git commit -qm "Upstream snapshot $up $ver"
+          git push -f "https://x-access-token:${{ github.token }}@github.com/${{ github.repository }}.git" upstream
