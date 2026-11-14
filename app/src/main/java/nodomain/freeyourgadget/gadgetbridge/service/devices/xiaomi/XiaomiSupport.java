@@ -175,6 +175,7 @@ public class XiaomiSupport extends AbstractDeviceSupport {
 
     @Override
     public void dispose() {
+        watchfaceService.dispose();   // Rotador: stop the rotation timer
         if (this.connectionSupport != null) {
             XiaomiConnectionSupport connectionSupport = this.connectionSupport;
             this.connectionSupport = null;

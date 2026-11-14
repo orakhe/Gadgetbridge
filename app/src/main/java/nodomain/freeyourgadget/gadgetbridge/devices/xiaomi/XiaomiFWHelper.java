@@ -115,6 +115,13 @@ public class XiaomiFWHelper {
         parseBytes();
     }
 
+    /** Rotador: build a helper straight from bytes already in memory. */
+    public XiaomiFWHelper(final byte[] bytes) {
+        this.uri = null;
+        this.fw = bytes;
+        parseBytes();
+    }
+
     public boolean isValid() {
         return valid;
     }

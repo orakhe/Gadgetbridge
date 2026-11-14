@@ -87,6 +87,13 @@ android {
     }
 
     signingConfigs {
+        // Rotador: fixed key so every APK built on GitHub can update the previous one
+        debug {
+            storeFile file("rotador.keystore")
+            storePassword "rotador123"
+            keyAlias "rotador"
+            keyPassword "rotador123"
+        }
         nightly {
             if (System.getProperty("nightly_store_file") != null) {
                 storeFile file(System.getProperty("nightly_store_file"))
@@ -126,6 +133,12 @@ android {
     }
 
     buildTypes {
+        debug {
+            // Rotador: installs next to the regular Gadgetbridge
+            applicationIdSuffix ".rotador"
+            versionNameSuffix "-rotador"
+        }
+
         release {
             minifyEnabled true
             proguardFiles getDefaultProguardFile("proguard-android.txt"), "proguard-rules.pro"

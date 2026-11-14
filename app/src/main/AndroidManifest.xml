@@ -137,6 +137,15 @@
             </intent-filter>
         </receiver>
         <activity
+            android:name=".activities.WatchfaceRotatorActivity"
+            android:label="Rotador de carátulas"
+            android:exported="true">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+                <category android:name="android.intent.category.LAUNCHER" />
+            </intent-filter>
+        </activity>
+        <activity
             android:name=".activities.ControlCenterv2"
             android:label="@string/title_activity_controlcenter"
             android:theme="@style/SplashTheme"

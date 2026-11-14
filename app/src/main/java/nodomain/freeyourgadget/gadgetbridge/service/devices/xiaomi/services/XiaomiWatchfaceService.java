@@ -53,8 +53,37 @@ public class XiaomiWatchfaceService extends AbstractXiaomiService implements Xia
     // Not null if we're installing a firmware
     private XiaomiFWHelper fwHelper = null;
 
+    private final XiaomiWatchfaceRotator rotator = new XiaomiWatchfaceRotator(this);
+
     public XiaomiWatchfaceService(final XiaomiSupport support) {
         super(support);
+    }
+
+    @Override
+    public void initialize() {
+        super.initialize();
+        rotator.start();
+    }
+
+    @Override
+    public void onDisconnect() {
+        rotator.stop();
+        super.onDisconnect();
+    }
+
+    @Override
+    public void dispose() {
+        rotator.stop();
+        super.dispose();
+    }
+
+    public boolean isConnected() {
+        final GBDevice device = getSupport().getDevice();
+        return device != null && device.isConnected() && getSupport().getConnectionSpecificSupport() != null;
+    }
+
+    public boolean isInstallInProgress() {
+        return fwHelper != null;
     }
 
     @Override
@@ -74,7 +103,9 @@ public class XiaomiWatchfaceService extends AbstractXiaomiService implements Xia
             case CMD_WATCHFACE_INSTALL:
                 final int installStatus = cmd.getWatchface().getInstallStatus();
                 if (installStatus != 0) {
-                    LOG.warn("Invalid watchface install status {} for {}", installStatus, fwHelper.getId());
+                    LOG.warn("Invalid watchface install status {} for {}", installStatus, fwHelper != null ? fwHelper.getId() : null);
+                    fwHelper = null;
+                    rotator.onInstallRejected(installStatus);
                     return;
                 }
 
@@ -124,6 +155,8 @@ public class XiaomiWatchfaceService extends AbstractXiaomiService implements Xia
         final GBDeviceEventAppInfo appInfoCmd = new GBDeviceEventAppInfo();
         appInfoCmd.apps = gbDeviceApps.toArray(new GBDeviceApp[0]);
         getSupport().evaluateGBDeviceEvent(appInfoCmd);
+
+        rotator.onWatchfaceList(new HashSet<>(allWatchfaces), new HashSet<>(userWatchfaces), activeWatchface);
     }
 
     public void setWatchface(final UUID uuid) {
@@ -246,6 +279,7 @@ public class XiaomiWatchfaceService extends AbstractXiaomiService implements Xia
                 }
 
                 fwHelper = null;
+                rotator.onUploadFinished(success);
             });
         }
     }
