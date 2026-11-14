@@ -5,14 +5,19 @@ apply plugin:'application'
 archivesBaseName = 'gadgetbridge-daogenerator'
 
 dependencies {
-    // https://github.com/Freeyourgadget/greenDAO/tree/fyg
-    implementation 'com.github.Freeyourgadget:greendao:1998d7cd2d21f662c6044f6ccf3b3a251bbad341'
+    // Rotador: the greenDAO fork is no longer on jitpack; its generator sources are copied
+    // from upstream Gadgetbridge (Codeberg) into src/de by the CI workflow
+    implementation 'org.freemarker:freemarker:2.3.32'
 }
 
 sourceSets {
     main {
         java {
             srcDir 'src'
+        }
+        resources {
+            srcDir 'src'
+            exclude '**/*.java'
         }
     }
 }

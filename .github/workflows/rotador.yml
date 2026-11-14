@@ -20,6 +20,14 @@ jobs:
           distribution: temurin
           java-version: 17
       - uses: gradle/actions/setup-gradle@v4
+      - name: Vendor greenDAO generator from upstream
+        run: |
+          git clone -q --depth 1 https://codeberg.org/Freeyourgadget/Gadgetbridge.git /tmp/up
+          cp -r /tmp/up/GBDaoGenerator/src/de GBDaoGenerator/src/
+          fm=$(grep -rhoE "org\.freemarker:freemarker:[0-9.]+" /tmp/up/GBDaoGenerator /tmp/up/gradle 2>/dev/null | head -1)
+          if [ -z "$fm" ]; then fm=$(grep -rhoE 'freemarker *= *"[0-9.]+"' /tmp/up/gradle 2>/dev/null | head -1 | grep -oE "[0-9.]+" | sed 's/^/org.freemarker:freemarker:/'); fi
+          [ -n "$fm" ] && sed -i "s/org.freemarker:freemarker:[0-9.]*/$fm/" GBDaoGenerator/build.gradle
+          echo "freemarker: $fm"; find GBDaoGenerator/src/de -type f | head -50
       - name: Build
         run: |
           chmod +x gradlew
