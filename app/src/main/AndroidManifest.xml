@@ -181,6 +181,10 @@
         android:theme="@style/GadgetbridgeTheme"
         tools:targetApi="33">
         <activity
+            android:name=".activities.WatchfaceRotatorActivity"
+            android:label="Rotador de carátulas"
+            android:exported="false" />
+        <activity
             android:name=".activities.ControlCenterv2"
             android:configChanges="keyboard|keyboardHidden|navigation"
             android:label="@string/title_activity_controlcenter"

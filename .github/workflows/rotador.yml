@@ -1,0 +1,54 @@
+name: Rotador APK
+
+on:
+  push:
+    branches: [ rotador, rotador-up ]
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  build:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v5
+        with:
+          fetch-depth: 50
+      - uses: actions/setup-java@v5
+        with:
+          distribution: temurin
+          java-version: 21
+      - uses: gradle/actions/setup-gradle@v4
+      - name: Build
+        run: |
+          chmod +x gradlew
+          set +e
+          ./gradlew --no-daemon --stacktrace assembleMainlineDebug > build.log 2>&1
+          code=$?
+          if [ $code -ne 0 ]; then
+            msg=$(grep -E "error:|FAILURE|What went wrong|wrong:|Exception|e: " build.log | grep -v "^\s*at " | head -25; echo ----; tail -15 build.log)
+            msg="${msg//'%'/'%25'}"; msg="${msg//$'\n'/'%0A'}"; msg="${msg//$'\r'/}"
+            echo "::error title=Gradle::$msg"
+            git config user.name "rotador-ci"
+            git config user.email "rotador-ci@users.noreply.github.com"
+            cp build.log /tmp/build.log
+            git checkout -q --orphan ci-log
+            git rm -rq --cached .
+            cp /tmp/build.log build-${{ github.run_number }}.log
+            git add build-${{ github.run_number }}.log
+            git commit -qm "build log ${{ github.run_number }}"
+            git push -f origin ci-log || true
+          fi
+          exit $code
+      - name: Rename APK
+        run: |
+          cp app/build/outputs/apk/mainline/debug/*.apk GadgetbridgeRotador.apk
+          ls -la GadgetbridgeRotador.apk
+      - name: Publish release
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: rotador-${{ github.run_number }}
+          name: Rotador ${{ github.run_number }}
+          make_latest: true
+          files: GadgetbridgeRotador.apk

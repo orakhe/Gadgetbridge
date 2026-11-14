@@ -106,6 +106,13 @@ android {
     final def nightlyKeyPassword = providers.systemProperty("nightly_key_password")
 
     signingConfigs {
+        // Rotador: fixed key so every APK built on GitHub can update the previous one
+        getByName("debug") {
+            storeFile = file("rotador.keystore")
+            storePassword = "rotador123"
+            keyAlias = "rotador"
+            keyPassword = "rotador123"
+        }
         create("nightly") {
             if (nightlyStoreFile.isPresent()) {
                 storeFile = file(nightlyStoreFile.get())
@@ -160,6 +167,12 @@ android {
         //    minifyEnabled true
         //    proguardFiles getDefaultProguardFile("proguard-android-optimize.txt"), "proguard-rules.pro"
         //}
+
+        getByName("debug") {
+            // Rotador: installs next to the regular Gadgetbridge
+            applicationIdSuffix = ".rotador"
+            versionNameSuffix = "-rotador"
+        }
 
         getByName("release") {
             minifyEnabled = true

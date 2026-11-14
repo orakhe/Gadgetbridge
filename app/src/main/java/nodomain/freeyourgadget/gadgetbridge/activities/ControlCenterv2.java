@@ -609,7 +609,10 @@ public class ControlCenterv2 extends AppCompatActivity
         drawer.closeDrawer(GravityCompat.START, AndroidUtils.areAnimationsEnabled(this));
 
         final int itemId = item.getItemId();
-        if (itemId == R.id.action_settings) {
+        if (itemId == R.id.action_watchface_rotator) {
+            startActivity(new Intent(this, WatchfaceRotatorActivity.class));
+            return false;
+        } else if (itemId == R.id.action_settings) {
             final Intent settingsIntent = new Intent(this, SettingsActivity.class);
             startActivityForResult(settingsIntent, MENU_REFRESH_CODE);
             return false;
