@@ -19,25 +19,28 @@ jobs:
         with:
           distribution: temurin
           java-version: 17
-      - uses: android-actions/setup-android@v3
       - uses: gradle/actions/setup-gradle@v4
       - name: Build
         run: |
           chmod +x gradlew
-          set -o pipefail
-          ./gradlew --no-daemon --stacktrace assembleMainlineDebug 2>&1 | tee build.log
-      - name: Publish build log on failure
-        if: failure()
-        run: |
-          git config user.name "rotador-ci"
-          git config user.email "rotador-ci@users.noreply.github.com"
-          cp build.log /tmp/build.log 2>/dev/null || echo "no build log (failed before gradle)" > /tmp/build.log
-          git checkout --orphan ci-log
-          git rm -rq --cached .
-          cp /tmp/build.log build-${{ github.run_number }}.log
-          git add build-${{ github.run_number }}.log
-          git commit -qm "build log ${{ github.run_number }}"
-          git push -f origin ci-log
+          set +e
+          ./gradlew --no-daemon --stacktrace assembleMainlineDebug > build.log 2>&1
+          code=$?
+          if [ $code -ne 0 ]; then
+            msg=$(grep -E "error:|FAILURE|What went wrong|wrong:|Exception|e: " build.log | grep -v "^\s*at " | head -25; echo ----; tail -15 build.log)
+            msg="${msg//'%'/'%25'}"; msg="${msg//$'\n'/'%0A'}"; msg="${msg//$'\r'/}"
+            echo "::error title=Gradle::$msg"
+            git config user.name "rotador-ci"
+            git config user.email "rotador-ci@users.noreply.github.com"
+            cp build.log /tmp/build.log
+            git checkout -q --orphan ci-log
+            git rm -rq --cached .
+            cp /tmp/build.log build-${{ github.run_number }}.log
+            git add build-${{ github.run_number }}.log
+            git commit -qm "build log ${{ github.run_number }}"
+            git push -f origin ci-log || true
+          fi
+          exit $code
       - name: Rename APK
         run: |
           cp app/build/outputs/apk/mainline/debug/*.apk GadgetbridgeRotador.apk
