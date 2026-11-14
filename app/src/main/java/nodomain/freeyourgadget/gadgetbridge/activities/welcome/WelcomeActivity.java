@@ -1,0 +1,87 @@
+/*  Copyright (C) 2024 Arjan Schrijver
+
+    This file is part of Gadgetbridge.
+
+    Gadgetbridge is free software: you can redistribute it and/or modify
+    it under the terms of the GNU Affero General Public License as published
+    by the Free Software Foundation, either version 3 of the License, or
+    (at your option) any later version.
+
+    Gadgetbridge is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU Affero General Public License for more details.
+
+    You should have received a copy of the GNU Affero General Public License
+    along with this program.  If not, see <https://www.gnu.org/licenses/>. */
+package nodomain.freeyourgadget.gadgetbridge.activities.welcome;
+
+import android.os.Bundle;
+
+import androidx.annotation.NonNull;
+import androidx.fragment.app.Fragment;
+import androidx.fragment.app.FragmentActivity;
+import androidx.viewpager2.adapter.FragmentStateAdapter;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import dagger.hilt.android.AndroidEntryPoint;
+import nodomain.freeyourgadget.gadgetbridge.GBApplication;
+import nodomain.freeyourgadget.gadgetbridge.databinding.ActivityWelcomeBinding;
+import nodomain.freeyourgadget.gadgetbridge.activities.AbstractGBActivity;
+
+@AndroidEntryPoint
+public class WelcomeActivity extends AbstractGBActivity {
+    private static final Logger LOG = LoggerFactory.getLogger(WelcomeActivity.class);
+
+    @Override
+    protected void onCreate(Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
+        final ActivityWelcomeBinding binding = ActivityWelcomeBinding.inflate(getLayoutInflater());
+        setContentView(binding.getRoot());
+        if (getSupportActionBar() != null) {
+            getSupportActionBar().hide();
+        }
+
+        // Configure ViewPager2 with fragment adapter and default fragment
+        WelcomeFragmentsPagerAdapter pagerAdapter = new WelcomeFragmentsPagerAdapter(this);
+        binding.welcomeViewpager.setAdapter(pagerAdapter);
+
+        // Set up welcome page indicator
+        binding.welcomePageIndicator.setViewPager(binding.welcomeViewpager);
+    }
+
+    @Override
+    protected void onResume() {
+        super.onResume();
+        final boolean firstRun = GBApplication.getPrefs().getBoolean("first_run", true);
+        if (firstRun && !GBApplication.app().getDeviceManager().getDevices().isEmpty()) {
+            // A device was added - dismiss the welcome screen
+            GBApplication.getPrefs().getPreferences().edit().putBoolean("first_run", false).apply();
+            finish();
+        }
+    }
+
+    private static class WelcomeFragmentsPagerAdapter extends FragmentStateAdapter {
+        public WelcomeFragmentsPagerAdapter(FragmentActivity fa) {
+            super(fa);
+        }
+
+        @NonNull
+        @Override
+        public Fragment createFragment(int position) {
+            return switch (position) {
+                case 0 -> new WelcomeFragmentIntro();
+                case 1 -> new WelcomeFragmentOverview();
+                case 2 -> new WelcomeFragmentDocsSource();
+                default -> new WelcomeFragmentGetStarted();
+            };
+        }
+
+        @Override
+        public int getItemCount() {
+            return 4;
+        }
+    }
+}
