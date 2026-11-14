@@ -16,8 +16,7 @@ sourceSets {
             srcDir 'src'
         }
         resources {
-            srcDir 'src'
-            exclude '**/*.java'
+            srcDir 'src-template'
         }
     }
 }

@@ -27,7 +27,9 @@ jobs:
           fm=$(grep -rhoE "org\.freemarker:freemarker:[0-9.]+" /tmp/up/GBDaoGenerator /tmp/up/gradle 2>/dev/null | head -1)
           if [ -z "$fm" ]; then fm=$(grep -rhoE 'freemarker *= *"[0-9.]+"' /tmp/up/gradle 2>/dev/null | head -1 | grep -oE "[0-9.]+" | sed 's/^/org.freemarker:freemarker:/'); fi
           [ -n "$fm" ] && sed -i "s/org.freemarker:freemarker:[0-9.]*/$fm/" GBDaoGenerator/build.gradle
-          echo "freemarker: $fm"; find GBDaoGenerator/src/de -type f | head -50
+          mkdir -p GBDaoGenerator/src-template
+          find /tmp/up/GBDaoGenerator -name "*.ftl" -exec cp {} GBDaoGenerator/src-template/ \;
+          echo "freemarker: $fm"; find /tmp/up/GBDaoGenerator -name "*.ftl"; grep -rn "TemplateLoading" GBDaoGenerator/src/de || true
       - name: Build
         run: |
           chmod +x gradlew
