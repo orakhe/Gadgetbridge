@@ -1,0 +1,48 @@
+apply plugin: 'java'
+apply plugin: 'maven-publish'
+apply plugin:'application'
+
+archivesBaseName = 'gadgetbridge-daogenerator'
+
+dependencies {
+    // Rotador: the greenDAO fork is no longer on jitpack; its generator sources are copied
+    // from upstream Gadgetbridge (Codeberg) into src/de by the CI workflow
+    implementation 'org.freemarker:freemarker:2.3.32'
+}
+
+sourceSets {
+    main {
+        java {
+            srcDir 'src'
+        }
+        resources {
+            srcDir 'src'
+            exclude '**/*.java'
+        }
+    }
+}
+
+mainClassName = "nodomain.freeyourgadget.gadgetbridge.daogen.GBDaoGenerator"
+
+tasks.register('genSources', JavaExec) {
+    mainClass = mainClassName
+    classpath = sourceSets.main.runtimeClasspath
+    workingDir = '../'
+}
+
+artifacts {
+    archives jar
+}
+
+java {
+    sourceCompatibility = JavaVersion.VERSION_1_8
+    targetCompatibility = JavaVersion.VERSION_1_8
+}
+
+tasks.named("distTar") {
+    duplicatesStrategy = 'include'
+}
+
+tasks.named("distZip") {
+    duplicatesStrategy = 'include'
+}
